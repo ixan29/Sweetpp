@@ -57,7 +57,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
                 }
 
                 code.push_back(repeat(" ",space)+"}");
-                code.push_back(repeat(" ",space)+":end_block_"+line.substr(6));
+                code.push_back(repeat(" ",space)+"end_block_"+line.substr(6)+":");
             }
         }
         else

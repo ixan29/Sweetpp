@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "utils.h"
+
 std::vector<std::string> readFileLines(const std::string& fileDest)
 {
     std::vector<std::string> lines {""};
@@ -13,7 +15,7 @@ std::vector<std::string> readFileLines(const std::string& fileDest)
     if(ifs.is_open())
     {
         while(getline(ifs,lines.back())) {
-            if(!lines.back().empty()) {
+            if(!sanitize(lines.back()).empty()) {
                 lines.push_back("");
             }
         }
