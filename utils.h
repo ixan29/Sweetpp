@@ -30,8 +30,15 @@ size_t minSpace(const std::vector<std::string>& lines)
 
 std::string sanitize(const std::string& str)
 {
-    size_t min = countSpaces(str)+1;
-    size_t max = str.find(' ', min);
+    size_t min = str[0]==' ' ? countSpaces(str)+1 : 0;
+    
+    int max = str.length();
+
+    while(max>=0 && str[max] == ' ') {
+        max--;
+    }
+
+    max++;
 
     return str.substr(min, max-min);
 }
@@ -46,4 +53,20 @@ std::string repeat(const std::string& str, size_t times)
     }
 
     return repeat;
+}
+
+size_t findDoubleDotsIdx(const std::string& str)
+{
+    for(size_t idx=0; idx<str.length();idx++) {
+        if(str[idx]==':') {
+            if(str[idx+1]==':') {
+                idx++;
+            }
+            else {
+                return idx;
+            }
+        }
+    }
+
+    return str.length();
 }
