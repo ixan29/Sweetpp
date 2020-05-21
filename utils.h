@@ -17,7 +17,7 @@ size_t countSpaces(const std::string& str)
     return spaces;
 }
 
-size_t minSpaces(const std::vector<std::string>& lines)
+size_t minSpace(const std::vector<std::string>& lines)
 {
     size_t spaces = 10000;
 
@@ -34,4 +34,16 @@ std::string sanitize(const std::string& str)
     size_t max = str.find(' ', min);
 
     return str.substr(min, max-min);
+}
+
+std::string repeat(const std::string& str, size_t times)
+{
+    std::string repeat;
+    repeat.reserve(str.length()*times);
+
+    for(size_t k=0; k<times; k++) {
+        repeat += str;
+    }
+
+    return repeat;
 }
