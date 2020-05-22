@@ -155,6 +155,35 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             code.push_back(repeat(" ",space)+"}();");
         }
         else
+        if(line.find("while") == 0)
+        {
+            std::string part = line.substr(5);
+            part = sanitize(part);
+
+            if(part[0] != '(')
+            {
+                std::string cond = part.substr(0, findDoubleDotsIdx(part));
+                code.push_back(repeat(" ", space)+"while("+cond+")");
+            }
+            else {
+                std::string cond = part.substr(0, findDoubleDotsIdx(part));
+                code.push_back(repeat(" ", space)+"while"+cond);
+            }
+
+            if(part.length() > findDoubleDotsIdx(part) + 1)
+            {
+                std::string codeBlock = part.substr(findDoubleDotsIdx(part)+1);
+
+                code.push_back(repeat(" ", space)+"{");
+
+                for(const std::string& lineBlock : parseCodeBlock({codeBlock})) {
+                    code.push_back(lineBlock);
+                }
+
+                code.push_back(repeat(" ", space)+"}");
+            }
+        }
+        else
         {
             code.push_back(lines[k]+";");
         }
