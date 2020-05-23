@@ -89,3 +89,128 @@ std::string replace(const std::string& str, const std::string& oldSeq, const std
 
     return replace;
 }
+
+std::vector<std::string> smartSplit(const std::string& str, const char delim, const bool checkAngles)
+{
+    std::vector<std::string> split {""};
+
+    std::vector<char> stack;
+
+    for(size_t k=0 ; k<str.length() ; k++)
+    {
+        switch(str[k])
+        {
+            case '[':
+                stack.push_back('[');
+                split.back() += '[';
+                break;
+
+            case ']':
+                if(stack.back()=='[')
+                {
+                    stack.pop_back();
+                    split.back() += ']';
+                }
+                else
+                {
+                    throw std::runtime_error(std::string("Error at smartSplit: expected ']' but got '")+stack.back()+"'");
+                }
+
+                break;
+
+            case '{':
+                stack.push_back('{');
+                split.back() += '{';
+                break;
+
+            case '}':
+                if(stack.back()=='{')
+                {
+                    stack.pop_back();
+                    split.back() += '}';
+                }
+                else
+                {
+                    throw std::runtime_error(std::string("Error at smartSplit: expected '}' but got '")+stack.back()+"'");
+                }
+
+                break;
+
+            case '<':
+                if(checkAngles)
+                {
+                    if( k+1<str.length()
+                    &&  str[k+1] == '<')
+                    {
+                        k++;
+                        split.back() += "<<";
+                    }
+                    else
+                    {
+                        stack.push_back('<');
+                        split.back() += '<';
+                    }
+                }
+                else
+                {
+                    split.back() += '<';
+                }
+
+                break;
+
+            case '>':
+                if(checkAngles)
+                {
+                    if( k+1<str.length()
+                    &&  str[k+1] == '>')
+                    {
+                        k++;
+                        split.back() += ">>";
+                    }
+                    else
+                    {
+                        if(stack.back()== '<')
+                        {
+                            stack.pop_back();
+                            split.back() += '>';
+                        }
+                        else
+                        {
+                            throw std::runtime_error(std::string("Error at smartSplit: expected '>' but got '")+stack.back()+"'");
+                        }
+                    }
+                }
+                else
+                {
+                    split.back() += '<';
+                }
+
+                break;
+
+            default:
+                if(str[k] == delim)
+                {
+                    if(stack.empty())
+                    {
+                        split.push_back("");
+                    }
+                    else
+                    {
+                        split.back() += delim;
+                    }
+                }
+                else
+                {
+                    split.back() += str[k];
+                }
+
+        }
+    }
+
+    if(!stack.empty())
+    {
+        throw std::runtime_error("Error at smartSplit: The text is not well formated");
+    }
+
+    return split;
+}
