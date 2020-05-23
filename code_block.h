@@ -155,6 +155,96 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             code.push_back(repeat(" ",space)+"}();");
         }
         else
+        if(line.find("if") == 0)
+        {
+            std::string part = line.substr(2);
+            part = sanitize(part);
+            std::string cond = part.substr(0, findDoubleDotsIdx(part));
+
+            if(part[0] != '(')
+            {
+                code.push_back(repeat(" ", space)+"if("+cond+")");
+            }
+            else {
+                code.push_back(repeat(" ", space)+"if"+cond);
+            }
+
+            if(part.length() > findDoubleDotsIdx(part) + 1)
+            {
+                std::string codeBlock = part.substr(findDoubleDotsIdx(part)+1);
+
+                code.push_back(repeat(" ", space)+"{");
+
+                for(const std::string& lineBlock : parseCodeBlock({codeBlock})) {
+                    code.push_back(lineBlock);
+                }
+
+                code.push_back(repeat(" ", space)+"}");
+            }
+            else
+            if(findDoubleDotsIdx(part) == part.length())
+            {
+                code.back() += ";";
+            }
+        }
+        else
+        if(line.find("else") == 0)
+        {
+            std::string part = line.substr(4);
+            part = sanitize(part);
+
+            if(part.find("if") == 0)
+            {
+                part = part.substr(2);
+                part = sanitize(part);
+                std::string cond = part.substr(0, findDoubleDotsIdx(part));
+
+                if(part[0] != '(')
+                {
+                    code.push_back(repeat(" ", space)+"else if("+cond+")");
+                }
+                else {
+                    code.push_back(repeat(" ", space)+"else if"+cond);
+                }
+
+                if(part.length() > findDoubleDotsIdx(part) + 1)
+                {
+                    std::string codeBlock = part.substr(findDoubleDotsIdx(part)+1);
+
+                    code.push_back(repeat(" ", space)+"{");
+
+                    for(const std::string& lineBlock : parseCodeBlock({codeBlock})) {
+                        code.push_back(lineBlock);
+                    }
+
+                    code.push_back(repeat(" ", space)+"}");
+                }
+                else
+                if(findDoubleDotsIdx(part) == part.length())
+                {
+                    code.back() += ";";
+                }
+            }
+            else
+            if(part.length() > findDoubleDotsIdx(part) + 1)
+            {
+                std::string codeBlock = part.substr(findDoubleDotsIdx(part)+1);
+
+                code.push_back(repeat(" ", space)+"else");
+                code.push_back(repeat(" ", space)+"{");
+
+                for(const std::string& lineBlock : parseCodeBlock({codeBlock})) {
+                    code.push_back(lineBlock);
+                }
+
+                code.push_back(repeat(" ", space)+"}");
+            }
+            else
+            {
+                code.push_back(repeat(" ", space)+"else");
+            }
+        }
+        else
         if(line.find("while") == 0)
         {
             std::string part = line.substr(5);
@@ -185,6 +275,32 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             if(findDoubleDotsIdx(part) == part.length())
             {
                 code.back() += ";";
+            }
+        }
+        else
+        if(line.find("do") == 0)
+        {
+            std::string part = line.substr(2);
+            part = sanitize(part);
+
+            if(part[0]==':')
+            {
+                code.push_back(repeat(" ",space)+"do");
+
+                if(part.size()>1)
+                {
+                    code.push_back(repeat(" ",space)+"{");
+
+                    for(const std::string& lineBlock : parseCodeBlock({part.substr(1)})) {
+                        code.push_back(lineBlock);
+                    }
+
+                    code.push_back(repeat(" ",space)+"}");
+                }
+            }
+            else
+            {
+                code.push_back(lines[k]);
             }
         }
         else
