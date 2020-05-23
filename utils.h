@@ -70,3 +70,22 @@ size_t findDoubleDotsIdx(const std::string& str)
 
     return str.length();
 }
+
+std::string replace(const std::string& str, const std::string& oldSeq, const std::string& newSeq)
+{
+    std::string replace;
+
+    size_t idx=0;
+    size_t new_idx;
+
+    while((new_idx = str.find(oldSeq, idx)) < str.length())
+    {
+        replace += str.substr(idx, new_idx - idx);
+        replace += newSeq;
+        idx = new_idx + oldSeq.length();
+    }
+
+    replace += str.substr(idx);
+
+    return replace;
+}
