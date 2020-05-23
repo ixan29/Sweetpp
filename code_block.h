@@ -181,6 +181,11 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
 
                 code.push_back(repeat(" ", space)+"}");
             }
+            else
+            if(findDoubleDotsIdx(part) == part.length())
+            {
+                code.back() += ";";
+            }
         }
         else
         if(line.find("for") == 0)
@@ -209,6 +214,11 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
                 }
 
                 code.push_back(repeat(" ", space)+"}");
+            }
+            else
+            if(findDoubleDotsIdx(part) == part.length())
+            {
+                code.back() += ";";
             }
         }
         else
