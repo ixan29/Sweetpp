@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include "type.h"
 
 struct Argument
@@ -40,12 +41,39 @@ Argument parseArgument(const std::string& str)
 
 std::vector<Argument> parseArguments(const std::string& str)
 {
-    std::vector<Argument> arguments;
-
     std::string line = sanitize(str);
 
-    for(const std::string& argStr : smartSplit(line, ',', true)) {
-        arguments.push_back(parseArgument(argStr));
+    if(line.empty()) {
+        return {};
+    }
+
+    std::vector<Argument> arguments;
+    auto split = smartSplit(line, ',', true);
+    arguments.reserve(split.size());
+
+    for(std::string& argStr : split) {
+
+        argStr = sanitize(argStr);
+
+        if(argStr.find(' ') < argStr.length())
+        {
+            arguments.push_back(parseArgument(argStr));
+        }
+        else
+        {
+            if(arguments.empty()) {
+                throw std::runtime_error(
+                    std::string("Error at parsing arguments. The first argument has no type: ")
+                +   argStr
+                );
+            }
+            else
+            {
+                std::ostringstream oss;
+                oss << arguments.back().type << " " << argStr;
+                arguments.push_back(parseArgument(oss.str()));
+            }
+        }
     }
 
     return arguments;
