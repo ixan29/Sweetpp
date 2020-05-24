@@ -1,10 +1,12 @@
 #pragma once
 
 #include "utils.h"
+#include "argument.h"
 
 std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
 {
     std::vector<std::string> code;
+    std::vector<char> stack;
 
     size_t space = minSpace(lines);
 
@@ -14,7 +16,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
     {
         std::string line = sanitize(lines[k]);
 
-        if(countSpaces(lines[k]) > space)
+        if(stack.empty() && countSpaces(lines[k]) > space)
         {
             std::vector<std::string> block;
 
@@ -30,7 +32,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
                 code.push_back(blockLine);
             }
 
-            code.push_back(repeat(" ",space)+"}");
+            code.push_back(repeat(" ",space)+"};");
         }
         else
         if(line.find("block ")==0)
@@ -152,7 +154,11 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
                 }
             }
 
-            code.push_back(repeat(" ",space)+"}();");
+            code.push_back(repeat(" ",space)+"}()");
+
+            if(stack.empty()) {
+                code.back() += ";";
+            }
         }
         else
         if(line.find("if") == 0)
@@ -295,7 +301,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
                         code.push_back(lineBlock);
                     }
 
-                    code.push_back(repeat(" ",space)+"}");
+                    code.push_back(repeat(" ",space)+"};");
                 }
             }
             else
@@ -338,8 +344,143 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             }
         }
         else
+        if( line.find(']') < line.find('(')
+        &&  sanitize(
+                line.substr(
+                    line.find(']')+1,
+                    line.find('(')-line.find(']')-1
+                )
+            ).empty()
+        ) //detected a lambda
         {
-            code.push_back(lines[k]+";");
+            code.push_back(lines[k].substr(0, lines[k].find(']')+1));
+
+            std::string strArgs = line.substr(line.find('(')+1);
+            strArgs = strArgs.substr(0, findDoubleDotsIdx(strArgs));
+            strArgs = strArgs.substr(0, strArgs.find_last_of(')'));
+
+            auto args = parseArguments(strArgs);
+            code.back() += '(';
+            code.back() += join(args, ",");
+            code.back() += ')';
+
+            std::string rest = line.substr(line.find(')')+1);
+            rest = rest.substr(0, findDoubleDotsIdx(rest));
+            code.back() += rest;
+
+            if(line.length() > findDoubleDotsIdx(line)+1)
+            {
+                std::string codeLine = repeat(" ",space) + line.substr(findDoubleDotsIdx(line)+1);
+
+                code.push_back(repeat(" ",space)+"{");
+
+                for(auto& line2 : parseCodeBlock({codeLine})) {
+                    code.push_back(line2);
+                }
+
+                code.push_back(repeat(" ",space)+"}");
+
+                if(stack.empty()) {
+                    code.back() += ";";
+                }
+            }
+            else
+            {
+                size_t lambda_space = countSpaces(lines[k]);
+
+                std::vector<std::string> block;
+
+                k++;
+
+                for(; k<lines.size() && countSpaces(lines[k])>lambda_space; k++) {
+                    block.push_back(lines[k]);
+                }
+
+                k--;
+
+                code.push_back(repeat(" ",lambda_space)+"{");
+
+                for(const std::string& blockLine : parseCodeBlock(block)) {
+                    code.push_back(blockLine);
+                }
+
+                code.push_back(repeat(" ",lambda_space)+"}");
+
+                if(stack.empty()) {
+                    code.back() += ';';
+                }
+            }
+        }
+        else
+        {
+            code.push_back("");
+
+            for(size_t i=0 ; i<lines[k].length() ; i++)
+            {
+                switch(lines[k][i])
+                {
+                    case '(':
+                        stack.push_back('(');
+                        code.back() += '(';
+                        break;
+
+                    case ')':
+                        if(stack.back()=='(')
+                        {
+                            stack.pop_back();
+                            code.back() += ')';
+                        }
+                        else
+                        {
+                            throw std::runtime_error(std::string("Error at smartSplit: expected ')' but got '")+stack.back()+"'");
+                        }
+
+                        break;
+
+                    case '[':
+                        stack.push_back('[');
+                        code.back() += '[';
+                        break;
+
+                    case ']':
+                        if(stack.back()=='[')
+                        {
+                            stack.pop_back();
+                            code.back() += ']';
+                        }
+                        else
+                        {
+                            throw std::runtime_error(std::string("Error at smartSplit: expected ']' but got '")+stack.back()+"'");
+                        }
+
+                        break;
+
+                    case '{':
+                        stack.push_back('{');
+                        code.back() += '{';
+                        break;
+
+                    case '}':
+                        if(stack.back()=='{')
+                        {
+                            stack.pop_back();
+                            code.back() += '}';
+                        }
+                        else
+                        {
+                            throw std::runtime_error(std::string("Error at smartSplit: expected '}' but got '")+stack.back()+"'");
+                        }
+
+                        break;
+
+                    default:
+                        code.back() += lines[k][i];
+                }
+            }
+            
+            if(stack.empty()) {
+                code.back() += ";";
+            }
         }
     }
 
