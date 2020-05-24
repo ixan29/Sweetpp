@@ -6,6 +6,7 @@
 struct Type
 {
     bool isConst = false;
+    bool isConstexpr = false;
     std::string name;
 };
 
@@ -15,22 +16,41 @@ std::ostream& operator<<(std::ostream& os, const Type& type)
         os << "const ";
     }
 
+    if(type.isConstexpr) {
+        os << "constexpr ";
+    }
+
     return os << type.name;
 }
 
 Type parseType(const std::string& str)
 {
-    std::string line = sanitize(str);
-
     Type type;
 
-    if(line.find("const ")==0)
-    {
-        type.isConst = true;
-        line = sanitize(line.substr(6));
-    }
+    auto split = smartSplit(str, ' ', true);
 
-    type.name = std::move(line);
+    for(size_t k=0; k<split.size(); k++)
+    {
+        std::string& s = split[k];
+        s = sanitize(s);
+
+        if(s=="") {
+            //do nothing
+        }
+        else
+        if(s=="const") {
+            type.isConst = true;
+        }
+        else
+        if(s=="constexpr") {
+            type.isConstexpr = true;
+        }
+        else
+        {
+            type.name = join(split.begin()+k, split.end(), " ");
+            return type;
+        }
+    }
 
     return type;
 }
