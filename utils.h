@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <sstream>
 
 size_t countSpaces(const std::string& str)
 {
@@ -32,7 +33,7 @@ std::string sanitize(const std::string& str)
 {
     size_t min = str[0]==' ' ? countSpaces(str)+1 : 0;
     
-    int max = str.length();
+    int max = str.length()-1;
 
     while(max>=0 && str[max] == ' ') {
         max--;
@@ -100,6 +101,24 @@ std::vector<std::string> smartSplit(const std::string& str, const char delim, co
     {
         switch(str[k])
         {
+            case '(':
+                stack.push_back('(');
+                split.back() += '(';
+                break;
+
+            case ')':
+                if(stack.back()=='(')
+                {
+                    stack.pop_back();
+                    split.back() += ')';
+                }
+                else
+                {
+                    throw std::runtime_error(std::string("Error at smartSplit: expected ')' but got '")+stack.back()+"'");
+                }
+
+                break;
+
             case '[':
                 stack.push_back('[');
                 split.back() += '[';
@@ -139,13 +158,14 @@ std::vector<std::string> smartSplit(const std::string& str, const char delim, co
             case '<':
                 if(checkAngles)
                 {
+                    /*
                     if( k+1<str.length()
                     &&  str[k+1] == '<')
                     {
                         k++;
                         split.back() += "<<";
                     }
-                    else
+                    else*/
                     {
                         stack.push_back('<');
                         split.back() += '<';
@@ -161,6 +181,7 @@ std::vector<std::string> smartSplit(const std::string& str, const char delim, co
             case '>':
                 if(checkAngles)
                 {
+                    /*
                     if( k+1<str.length()
                     &&  str[k+1] == '>')
                     {
@@ -169,6 +190,7 @@ std::vector<std::string> smartSplit(const std::string& str, const char delim, co
                     }
                     else
                     {
+                    */
                         if(stack.back()== '<')
                         {
                             stack.pop_back();
@@ -178,7 +200,7 @@ std::vector<std::string> smartSplit(const std::string& str, const char delim, co
                         {
                             throw std::runtime_error(std::string("Error at smartSplit: expected '>' but got '")+stack.back()+"'");
                         }
-                    }
+                    //}
                 }
                 else
                 {
@@ -213,4 +235,39 @@ std::vector<std::string> smartSplit(const std::string& str, const char delim, co
     }
 
     return split;
+}
+
+template<typename T>
+std::string join(const std::vector<T>& vec, const std::string& del)
+{
+    if(vec.empty()) {
+        return "";
+    }
+
+    std::ostringstream oss;
+    oss << vec[0];
+
+    for(size_t k=1; k<vec.size(); k++) {
+        oss << del << vec[k];
+    }
+
+    return oss.str();
+}
+
+template<typename Iterator>
+std::string join(Iterator begin, Iterator end, const std::string& delim)
+{
+    if(begin==end) {
+        return "";
+    }
+
+    std::ostringstream oss;
+
+    oss << *begin;
+
+    for(Iterator it = begin+1; it!=end; ++it) {
+        oss << delim << *it;
+    }
+
+    return oss.str();
 }
