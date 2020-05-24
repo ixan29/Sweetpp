@@ -63,6 +63,11 @@ std::vector<std::string> parseTemplates(const std::string& str)
         templates.push_back(split[0]);
     }
     else
+    if(split[0].find("...") < split.size()-3)
+    {
+        templates.push_back("class... "+split[0].substr(0, split[0].find("...")));
+    }
+    else
     {
         templates.push_back("class "+split[0]);
     }
