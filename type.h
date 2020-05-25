@@ -8,6 +8,20 @@ struct Type
     bool isConst = false;
     bool isConstexpr = false;
     std::string name;
+
+    bool isReference() const {
+        return name.find('&') < name.length();
+    }
+
+    bool isPrimitive() const {
+        return  name == "bool"
+        ||      name == "char"
+        ||      name == "int"
+        ||      name == "unsigned"
+        ||      name == "float"
+        ||      name == "double"
+        ||      name == "long";
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const Type& type)
