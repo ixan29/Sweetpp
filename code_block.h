@@ -32,17 +32,16 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
                 code.push_back(blockLine);
             }
 
-            code.push_back(repeat(" ",space)+"};");
+            code.push_back(repeat(" ",space)+"}");
         }
         else
         if(line.find("block ")==0)
         {
-            line = line.substr(0, findDoubleDotsIdx(line));
+            line = sanitize(line.substr(0, findDoubleDotsIdx(line)));
 
-            code.push_back(repeat(" ",space)+"/*"+line+"*/");
-
-            if(line.length()>6)
+            if(line.length()>5)
             {
+                code.push_back(repeat(" ",space)+"/*"+line+"*/");
                 k++;
                 std::vector<std::string> block;
 
@@ -75,13 +74,13 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             }
         }
         else
-        if(line.find("select ") < line.length())
+        if(line.find("choose ") < line.length())
         {
             line = line.substr(0, findDoubleDotsIdx(line));
 
-            code.push_back(line.substr(0, line.find("select ")));
+            code.push_back(line.substr(0, line.find("choose ")));
             code.back() += "[&]()->";
-            code.back() += line.substr(line.find("select ")+7);
+            code.back() += line.substr(line.find("choose ")+7);
             code.push_back(repeat(" ",space)+"{");
 
             k++;
@@ -125,7 +124,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             std::cout << "line: " << lines[k-1] << std::endl;
 
             if(sanitize(lines[k]).find("default")!=0) {
-                throw std::runtime_error("Error! Excepted default condition at select statement");
+                throw std::runtime_error("Error! Excepted default condition at choose statement");
             }
 
             if(lines[k].length() > findDoubleDotsIdx(lines[k]))
@@ -161,7 +160,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             }
         }
         else
-        if(line.find("if") == 0)
+        if(line.find("if ") == 0 || line.find("if(") == 0)
         {
             std::string part = line.substr(2);
             part = sanitize(part);
@@ -194,7 +193,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             }
         }
         else
-        if(line.find("else") == 0)
+        if(line.find("else ") == 0)
         {
             std::string part = line.substr(4);
             part = sanitize(part);
@@ -251,7 +250,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             }
         }
         else
-        if(line.find("while") == 0)
+        if(line.find("while ") == 0 || line.find("while(")==0)
         {
             std::string part = line.substr(5);
             part = sanitize(part);
@@ -310,7 +309,7 @@ std::vector<std::string> parseCodeBlock(const std::vector<std::string>& lines)
             }
         }
         else
-        if(line.find("for") == 0)
+        if(line.find("for ") == 0 || line.find("for(") == 0)
         {
             std::string part = line.substr(3);
             part = sanitize(part);
