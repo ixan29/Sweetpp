@@ -72,7 +72,7 @@ struct Function
     }
 };
 
-std::unique_ptr<Function> parseFunction(const std::vector<std::string>& lines, Namespace* parent)
+std::vector<std::shared_ptr<Function>> parseFunction(const std::vector<std::string>& lines, Namespace* parent)
 {
     std::unique_ptr<Function> function (new Function());
 
@@ -93,10 +93,10 @@ std::unique_ptr<Function> parseFunction(const std::vector<std::string>& lines, N
     std::vector<std::string> codeBlock (lines.begin()+k, lines.end());
     function->code = parseCodeBlock(codeBlock);
 
-    methodInfo = replace(methodInfo, "<", " < ");
-    methodInfo = replace(methodInfo, ">", " > ");
-    methodInfo = replace(methodInfo, "(", " ( ");
-    methodInfo = replace(methodInfo, ")", " ) ");
+    methodInfo = replace(methodInfo, "<", " <");
+    methodInfo = replace(methodInfo, ">", "> ");
+    methodInfo = replace(methodInfo, "(", " (");
+    methodInfo = replace(methodInfo, ")", ") ");
 
     std::vector<std::string> parts;
     
@@ -134,7 +134,7 @@ std::unique_ptr<Function> parseFunction(const std::vector<std::string>& lines, N
     function->name = parts[k];
     k++;
 
-    if(parts[k].find('<') < parts[k].length()) {
+    if(parts[k].find('<') < parts[k].find('(')) {
 
         std::string templates = parts[k].substr(1, parts[k].length()-2);
         function->templates = parseTemplates(templates);
@@ -160,5 +160,7 @@ std::unique_ptr<Function> parseFunction(const std::vector<std::string>& lines, N
     function->arguments = parseArguments(args);
     
 
-    return std::move(function);
+    return {
+        std::move(function)
+    };
 }
