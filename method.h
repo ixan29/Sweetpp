@@ -12,6 +12,7 @@ struct Method
     std::vector<std::string> templates, partialTemplates;
     Composite* parent;
     bool isStatic = false;
+    bool isVirtual = false;
     Type returnType;
     std::string name;
     std::vector<Argument> arguments;
@@ -36,6 +37,10 @@ struct Method
 
         if(isStatic) {
             os << "static ";
+        }
+
+        if(isVirtual) {
+            os << "virtual ";
         }
 
         if(!isConstructor() && !isDestructor()) {
@@ -155,6 +160,12 @@ std::vector<std::shared_ptr<Method>> parseMethod(const std::vector<std::string>&
 
     if(parts[k] == "static") {
         method->isStatic = true;
+        k++;
+    }
+
+    if( parts[k] == "virtual"
+    ||  parts[k] == "override") {
+        method->isVirtual = true;
         k++;
     }
 
